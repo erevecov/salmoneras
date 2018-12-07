@@ -1,0 +1,489 @@
+{{!< layout/default}}
+
+{{#extend "css"}}
+<style>
+</style>
+{{/extend}}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="dropdown">
+                <a class="btn btn-primary dropdown-toggle" href="#" role="button" id="dropdownTools" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-wrench"></i> HERRAMIENTAS
+                </a>
+
+                <div class="dropdown-menu" aria-labelledby="dropdownTools">
+                    <a id="" class="dropdown-item" href="#">SIN HERRAMIENTAS</a>
+                </div>
+            </div>
+            <center><h1><span id="enterpriseName"></span> <a data-container="body" data-toggle="popover" data-placement="left" href="#" id="changeDates" role="button" class="btn btn-primary "><i class="far fa-calendar-alt"></i> CAMBIAR FECHAS  <span id="dateSelected" ></span></a></h1></center>
+            <br>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-3" id="generalWeightCardContainer"></div>
+        <div class="col-md-9">
+            <div id="generalWeightChart"></div>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <div class="col-md-3" id="generalBagsCardContainer"></div>
+        <div class="col-md-9">
+            <div id="generalBagsChart"></div>
+        </div>
+    </div>
+
+    <div class="row" id="foreachCenter"></div>
+</div>
+
+<div class="modal fade" id="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal_title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modal_body"></div>
+            <div class="modal-footer" id="modal_footer"></div>
+        </div>
+    </div>
+</div>
+{{#extend "js"}}
+<script>
+
+Highcharts.theme = {
+    colors: ['#F44336', '#009688', '#00BCD4', '#2196F3', '#4CAF50', '#03A9F4',
+        '#8BC34A', '#CDDC39', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
+        '#FFEB3B', '#FFC107', '#FF9800', '#FF5722', '#795548', '#9E9E9E', '#607D8B'],
+    chart: {
+        backgroundColor: {
+            linearGradient: { x1: 0, y1: 0, x2: 1, y2: 1 },
+            stops: [
+                [0, '#2a2a2b'],
+                [1, '#1a1a1a']
+            ]
+        },
+        style: {
+            fontFamily: '\'Unica One\', sans-serif'
+        },
+        plotBorderColor: '#606063'
+    },
+    title: {
+        style: {
+            color: '#E0E0E3',
+            textTransform: 'uppercase',
+            fontSize: '20px'
+        }
+    },
+    subtitle: {
+        style: {
+            color: '#E0E0E3',
+            textTransform: 'uppercase'
+        }
+    },
+    xAxis: {
+        gridLineColor: '#707073',
+        labels: {
+            style: {
+                color: '#E0E0E3'
+            }
+        },
+        lineColor: '#707073',
+        minorGridLineColor: '#505053',
+        tickColor: '#707073',
+        title: {
+            style: {
+                color: '#A0A0A3'
+
+            }
+        }
+    },
+    yAxis: {
+        gridLineColor: '#707073',
+        labels: {
+            style: {
+                color: '#E0E0E3'
+            }
+        },
+        lineColor: '#707073',
+        minorGridLineColor: '#505053',
+        tickColor: '#707073',
+        tickWidth: 1,
+        title: {
+            style: {
+                color: '#A0A0A3'
+            }
+        }
+    },
+    tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        style: {
+            color: '#F0F0F0'
+        }
+    },
+    plotOptions: {
+        series: {
+            dataLabels: {
+                color: '#B0B0B3'
+            },
+            marker: {
+                lineColor: '#333'
+            }
+        },
+        boxplot: {
+            fillColor: '#505053'
+        },
+        candlestick: {
+            lineColor: 'white'
+        },
+        errorbar: {
+            color: 'white'
+        }
+    },
+    legend: {
+        itemStyle: {
+            color: '#E0E0E3'
+        },
+        itemHoverStyle: {
+            color: '#FFF'
+        },
+        itemHiddenStyle: {
+            color: '#606063'
+        }
+    },
+    credits: {
+        style: {
+            color: '#666'
+        }
+    },
+    labels: {
+        style: {
+            color: '#707073'
+        }
+    },
+
+    drilldown: {
+        activeAxisLabelStyle: {
+            color: '#F0F0F3'
+        },
+        activeDataLabelStyle: {
+            color: '#F0F0F3'
+        }
+    },
+
+    navigation: {
+        buttonOptions: {
+            symbolStroke: '#DDDDDD',
+            theme: {
+                fill: '#505053'
+            }
+        }
+    },
+
+    // scroll charts
+    rangeSelector: {
+        buttonTheme: {
+            fill: '#505053',
+            stroke: '#000000',
+            style: {
+                color: '#CCC'
+            },
+            states: {
+                hover: {
+                    fill: '#707073',
+                    stroke: '#000000',
+                    style: {
+                        color: 'white'
+                    }
+                },
+                select: {
+                    fill: '#000003',
+                    stroke: '#000000',
+                    style: {
+                        color: 'white'
+                    }
+                }
+            }
+        },
+        inputBoxBorderColor: '#505053',
+        inputStyle: {
+            backgroundColor: '#333',
+            color: 'silver'
+        },
+        labelStyle: {
+            color: 'silver'
+        }
+    },
+
+    navigator: {
+        handles: {
+            backgroundColor: '#666',
+            borderColor: '#AAA'
+        },
+        outlineColor: '#CCC',
+        maskFill: 'rgba(255,255,255,0.1)',
+        series: {
+            color: '#7798BF',
+            lineColor: '#A6C7ED'
+        },
+        xAxis: {
+            gridLineColor: '#505053'
+        }
+    },
+
+    scrollbar: {
+        barBackgroundColor: '#808083',
+        barBorderColor: '#808083',
+        buttonArrowColor: '#CCC',
+        buttonBackgroundColor: '#606063',
+        buttonBorderColor: '#606063',
+        rifleColor: '#FFF',
+        trackBackgroundColor: '#404043',
+        trackBorderColor: '#404043'
+    },
+
+    // special colors for some of the
+    legendBackgroundColor: 'rgba(0, 0, 0, 0.5)',
+    background2: '#505053',
+    dataLabelsColor: '#B0B0B3',
+    textColor: '#C0C0C0',
+    contrastTextColor: '#F0F0F3',
+    maskColor: 'rgba(255,255,255,0.3)'
+};
+
+// Apply the theme
+Highcharts.setOptions(Highcharts.theme);
+
+let initDate = moment().format('YYYY-MM-DD')
+let endDate = moment().format('YYYY-MM-DD')
+let fullData = {}
+
+$(document).ready(function() {
+    selectNav('nav-dashboard')
+    $('#dateSelected').html(moment().format('DD/MM/YYYY'))
+    getCredentials().then(credentials=>{
+        $('#enterpriseName').html(credentials.enterprise.toUpperCase())
+    })
+
+    getFullData()
+})
+
+$('#changeDates').on('click', function() {
+    $('#modal').modal('show')
+
+    $('#modal_title').html(`<i class="fas fa-calendar-alt"></i> Rango de fechas`)
+
+    $('#modal_body').html(`
+        <div class="card">
+            <div class="card-body">
+                <center><h4 class="card-title">Fechas: Desde Hasta</h4></center>
+                <input style="font-size: 30px; text-align:center;" class="form-control" id="rangeDate" type="text" name="daterange" /> 
+            </div>
+        </div>  
+    `)
+
+    $('#modal_footer').html(`
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" id="rangeReport">Consultar rango</button>
+    `)
+
+    $('#rangeDate').daterangepicker({
+        opens: 'top',
+        startDate: moment(initDate).format('DD/MM/YYYY'),
+        endDate: moment(endDate).format('DD/MM/YYYY'),
+        locale: {
+            applyLabel: 'Aplicar',
+            cancelLabel: 'Cancelar',
+            format: 'DD/MM/YYYY',
+            daysOfWeek: [
+                'Dom',
+                'Lun',
+                'Mar',
+                'Mie',
+                'Jue',
+                'Vie',
+                'Sab'
+            ],
+            monthNames: [
+                'Enero',
+                'Febrero',
+                'Marzo',
+                'Abril',
+                'Mayo',
+                'Junio',
+                'Julio',
+                'Agosto',
+                'Septiembre',
+                'Octubre',
+                'Noviembre',
+                'Diciembre'
+            ],
+            firstDay: 1
+        }
+    }, function(start, end, label) {
+        initDate = start.format('YYYY-MM-DD')
+        endDate = end.format('YYYY-MM-DD')
+    })
+
+    $('#rangeReport').on('click', function(){
+        getFullData()
+    })
+})
+
+const getFullData = () => {
+    console.log(initDate, endDate)
+
+    $('#modal').modal('hide')
+    if(initDate == endDate) {
+        $('#dateSelected').html(moment(initDate).format('DD/MM/YYYY'))
+    } else {
+        $('#dateSelected').html(`${moment(initDate).format('DD/MM/YYYY')} - ${moment(endDate).format('DD/MM/YYYY')}`)
+    }
+
+    ajax({
+        url: 'api/rangeTotalData',
+        type: 'POST',
+        data: {
+            initDate,
+            endDate
+        }
+    }).then(res=> {
+        if(res.ok) {
+          toastr.success(`${res.ok.length} sacos encontrados`)  
+          graphCenters(res.ok)
+        } else if(res.err) {
+            toastr.warning(res.err)
+        }
+    })
+}
+
+const formatData = (centersData) => {
+    let centers = {}
+    let generalData = {
+        weight: 0,
+        bags: 0,
+        highchartsWeightSeries: [],
+        highchartsBagsSeries: []
+    }
+
+    _.forEach(centersData, (el)=>{
+        generalData.weight += el.bag.weight
+        generalData.bags += 1
+
+        if (!centers[el.center]) {
+            centers[el.center] = {
+                center: el.center,
+                totalWeight: el.bag.weight,
+                bagsCount: 1,
+                bags: [{
+                    _id: el._id,
+                    weigher: el.weigher,
+                    provider: el.provider,
+                    weight: el.bag.weight
+                }]
+            }
+        } else {
+            centers[el.center].totalWeight += el.bag.weight
+            centers[el.center].bagsCount += 1
+            centers[el.center].bags.push({
+                _id: el._id,
+                weigher: el.weigher,
+                provider: el.provider,
+                weight: el.bag.weight
+            })
+        }
+    })
+
+    _.forEach(Object.keys(centers), function(el){
+        generalData.highchartsWeightSeries.push({
+            name: `${centers[el].center}: ${centers[el].totalWeight} Kg`,
+            data: [centers[el].totalWeight]
+        })
+
+        generalData.highchartsBagsSeries.push({
+            name: `${centers[el].center}: ${centers[el].bagsCount}`,
+            data: [centers[el].bagsCount]
+        })
+    })
+
+    fullData.generalWeight = generalData.weight
+    fullData.generalBags = generalData.bags
+    fullData.centersData = centers
+    fullData.highchartsWeightSeries = generalData.highchartsWeightSeries
+    fullData.highchartsBagsSeries = generalData.highchartsBagsSeries
+}
+
+const graphCenters = (centersData) => {
+    formatData(centersData)
+    console.log(fullData)
+
+    $('#generalWeightCardContainer').html(`
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header"><center>KILOS TOTALES</center></div>
+            <div class="card-body">
+                <center><h4 class="card-title"><i class="fas fa-weight"></i> ${fullData.generalWeight} Kg</h4></center>
+            </div>
+        </div>
+    `)
+
+    $('#generalBagsCardContainer').html(`
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-header"><center>SACOS TOTALES</center></div>
+            <div class="card-body">
+                <center><h4 class="card-title"><i class="fas fa-shopping-bag"></i> ${fullData.generalBags}</h4></center>
+            </div>
+        </div>
+    `)
+    let generalWeightChart = Highcharts.chart(`generalWeightChart`, {
+        //colors: highChartsColors,
+        title: {
+            text: 'KILOS POR CENTRO'
+        },
+        chart: {
+            type: 'bar'
+        },
+        subtitle: {
+            text: ``
+        },
+        xAxis: {
+            categories: ['']
+        },
+        yAxis:{
+            title:{
+                text: 'cantidad'
+            },
+        },
+        series: fullData.highchartsWeightSeries 
+    });
+
+    let generalBagsChart = Highcharts.chart(`generalBagsChart`, {
+        //colors: highChartsColors,
+        title: {
+            text: 'SACOS POR CENTRO'
+        },
+        chart: {
+            type: 'column'
+        },
+        subtitle: {
+            text: ``
+        },
+        xAxis: {
+            categories: ['']
+        },
+        yAxis:{
+            title:{
+                text: 'cantidad'
+            },
+        },
+        series: fullData.highchartsBagsSeries 
+    });
+}
+
+</script>
+{{/extend}}
+
