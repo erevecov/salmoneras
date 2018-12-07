@@ -37,7 +37,17 @@
     </div>
 
     <div class="row" id="foreachCenter"></div>
+
+    
 </div>
+
+<p>
+<button class="btn btn-lg btn-default" onclick="readBatteryLevel()">Read Bluetooth device's<br>battery level</button>
+</p>
+
+<p id="target"></p>
+
+<p><small>Based on code snippets from <a href="https://developers.google.com/web/updates/2015/07/interact-with-ble-devices-on-the-web" target="_blank">Google Developers</a>.</small></p>
 
 <div class="modal fade" id="modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
@@ -54,214 +64,46 @@
     </div>
 </div>
 {{#extend "js"}}
+<script src="/public/js/highchartsTheme.js"></script>
 <script>
-
-Highcharts.theme = {
-    colors: ['#F44336', '#009688', '#00BCD4', '#2196F3', '#4CAF50', '#03A9F4',
-        '#8BC34A', '#CDDC39', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5',
-        '#FFEB3B', '#FFC107', '#FF9800', '#FF5722', '#795548', '#9E9E9E', '#607D8B'],
-    chart: {
-        backgroundColor: {
-            linearGradient: { x1: 0, y1: 0, x2: 1, y2: 1 },
-            stops: [
-                [0, '#2a2a2b'],
-                [1, '#1a1a1a']
-            ]
-        },
-        style: {
-            fontFamily: '\'Unica One\', sans-serif'
-        },
-        plotBorderColor: '#606063'
-    },
-    title: {
-        style: {
-            color: '#E0E0E3',
-            textTransform: 'uppercase',
-            fontSize: '20px'
-        }
-    },
-    subtitle: {
-        style: {
-            color: '#E0E0E3',
-            textTransform: 'uppercase'
-        }
-    },
-    xAxis: {
-        gridLineColor: '#707073',
-        labels: {
-            style: {
-                color: '#E0E0E3'
-            }
-        },
-        lineColor: '#707073',
-        minorGridLineColor: '#505053',
-        tickColor: '#707073',
-        title: {
-            style: {
-                color: '#A0A0A3'
-
-            }
-        }
-    },
-    yAxis: {
-        gridLineColor: '#707073',
-        labels: {
-            style: {
-                color: '#E0E0E3'
-            }
-        },
-        lineColor: '#707073',
-        minorGridLineColor: '#505053',
-        tickColor: '#707073',
-        tickWidth: 1,
-        title: {
-            style: {
-                color: '#A0A0A3'
-            }
-        }
-    },
-    tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        style: {
-            color: '#F0F0F0'
-        }
-    },
-    plotOptions: {
-        series: {
-            dataLabels: {
-                color: '#B0B0B3'
-            },
-            marker: {
-                lineColor: '#333'
-            }
-        },
-        boxplot: {
-            fillColor: '#505053'
-        },
-        candlestick: {
-            lineColor: 'white'
-        },
-        errorbar: {
-            color: 'white'
-        }
-    },
-    legend: {
-        itemStyle: {
-            color: '#E0E0E3'
-        },
-        itemHoverStyle: {
-            color: '#FFF'
-        },
-        itemHiddenStyle: {
-            color: '#606063'
-        }
-    },
-    credits: {
-        style: {
-            color: '#666'
-        }
-    },
-    labels: {
-        style: {
-            color: '#707073'
-        }
-    },
-
-    drilldown: {
-        activeAxisLabelStyle: {
-            color: '#F0F0F3'
-        },
-        activeDataLabelStyle: {
-            color: '#F0F0F3'
-        }
-    },
-
-    navigation: {
-        buttonOptions: {
-            symbolStroke: '#DDDDDD',
-            theme: {
-                fill: '#505053'
-            }
-        }
-    },
-
-    // scroll charts
-    rangeSelector: {
-        buttonTheme: {
-            fill: '#505053',
-            stroke: '#000000',
-            style: {
-                color: '#CCC'
-            },
-            states: {
-                hover: {
-                    fill: '#707073',
-                    stroke: '#000000',
-                    style: {
-                        color: 'white'
-                    }
-                },
-                select: {
-                    fill: '#000003',
-                    stroke: '#000000',
-                    style: {
-                        color: 'white'
-                    }
-                }
-            }
-        },
-        inputBoxBorderColor: '#505053',
-        inputStyle: {
-            backgroundColor: '#333',
-            color: 'silver'
-        },
-        labelStyle: {
-            color: 'silver'
-        }
-    },
-
-    navigator: {
-        handles: {
-            backgroundColor: '#666',
-            borderColor: '#AAA'
-        },
-        outlineColor: '#CCC',
-        maskFill: 'rgba(255,255,255,0.1)',
-        series: {
-            color: '#7798BF',
-            lineColor: '#A6C7ED'
-        },
-        xAxis: {
-            gridLineColor: '#505053'
-        }
-    },
-
-    scrollbar: {
-        barBackgroundColor: '#808083',
-        barBorderColor: '#808083',
-        buttonArrowColor: '#CCC',
-        buttonBackgroundColor: '#606063',
-        buttonBorderColor: '#606063',
-        rifleColor: '#FFF',
-        trackBackgroundColor: '#404043',
-        trackBorderColor: '#404043'
-    },
-
-    // special colors for some of the
-    legendBackgroundColor: 'rgba(0, 0, 0, 0.5)',
-    background2: '#505053',
-    dataLabelsColor: '#B0B0B3',
-    textColor: '#C0C0C0',
-    contrastTextColor: '#F0F0F3',
-    maskColor: 'rgba(255,255,255,0.3)'
-};
-
-// Apply the theme
-Highcharts.setOptions(Highcharts.theme);
-
 let initDate = moment().format('YYYY-MM-DD')
 let endDate = moment().format('YYYY-MM-DD')
 let fullData = {}
+
+readBatteryLevel()
+
+function readBatteryLevel() {
+  var $target = document.getElementById('target');
+  
+  if (!('bluetooth' in navigator)) {
+    $target.innerText = 'Bluetooth API not supported.';
+    return;
+  }
+  
+  navigator.bluetooth.requestDevice({
+      filters: [{
+        services: ['battery_service']
+      }]
+    })
+    .then(function (device) {
+      return device.gatt.connect();
+    })
+    .then(function (server) {
+      return server.getPrimaryService('battery_service');
+    })
+    .then(function (service) {
+      return service.getCharacteristic('battery_level');
+    })
+    .then(function (characteristic) {
+      return characteristic.readValue();
+    })
+    .then(function (value) {
+      $target.innerHTML = 'Battery percentage is <b>' + value.getUint8(0) + '</b>.';
+    })
+    .catch(function (error) {
+      $target.innerText = error;
+    });
+}
 
 $(document).ready(function() {
     selectNav('nav-dashboard')
@@ -429,6 +271,8 @@ const graphCenters = (centersData) => {
                 <center><h4 class="card-title"><i class="fas fa-weight"></i> ${fullData.generalWeight} Kg</h4></center>
             </div>
         </div>
+        <button type="button" class="btn btn-primary">Seleccionar centro</button>
+        <button type="button" class="btn btn-primary">Primary</button>
     `)
 
     $('#generalBagsCardContainer').html(`
@@ -439,6 +283,7 @@ const graphCenters = (centersData) => {
             </div>
         </div>
     `)
+
     let generalWeightChart = Highcharts.chart(`generalWeightChart`, {
         //colors: highChartsColors,
         title: {
