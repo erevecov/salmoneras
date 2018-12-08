@@ -41,14 +41,6 @@
     
 </div>
 
-<p>
-<button class="btn btn-lg btn-default" onclick="readBatteryLevel()">Read Bluetooth device's<br>battery level</button>
-</p>
-
-<p id="target"></p>
-
-<p><small>Based on code snippets from <a href="https://developers.google.com/web/updates/2015/07/interact-with-ble-devices-on-the-web" target="_blank">Google Developers</a>.</small></p>
-
 <div class="modal fade" id="modal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -69,41 +61,6 @@
 let initDate = moment().format('YYYY-MM-DD')
 let endDate = moment().format('YYYY-MM-DD')
 let fullData = {}
-
-readBatteryLevel()
-
-function readBatteryLevel() {
-  var $target = document.getElementById('target');
-  
-  if (!('bluetooth' in navigator)) {
-    $target.innerText = 'Bluetooth API not supported.';
-    return;
-  }
-  
-  navigator.bluetooth.requestDevice({
-      filters: [{
-        services: ['battery_service']
-      }]
-    })
-    .then(function (device) {
-      return device.gatt.connect();
-    })
-    .then(function (server) {
-      return server.getPrimaryService('battery_service');
-    })
-    .then(function (service) {
-      return service.getCharacteristic('battery_level');
-    })
-    .then(function (characteristic) {
-      return characteristic.readValue();
-    })
-    .then(function (value) {
-      $target.innerHTML = 'Battery percentage is <b>' + value.getUint8(0) + '</b>.';
-    })
-    .catch(function (error) {
-      $target.innerText = error;
-    });
-}
 
 $(document).ready(function() {
     selectNav('nav-dashboard')
