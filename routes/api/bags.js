@@ -138,7 +138,7 @@ const bagsDistribution = async (bags, token) => {
             _id: idGenerator(),
             type: 'tempBag',
             center: el.center,
-            enterprise: el.enterprise,
+            enterprise: 'michcom',//el.enterprise,
             weigher: el.weigher,
             provider: el.provider,
             phoneDate: el.phoneDate,
