@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    <link rel="stylesheet" href="/public/DataTables/datatables.min.css"/>
+    
     <style>
         .toast {
             opacity: 1 !important;
@@ -72,6 +74,7 @@
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="/public/DataTables/datatables.min.js"></script>
 
     <script src="/public/js/jquery.rut.min.js"></script>
     
@@ -84,6 +87,16 @@
 
         toastr.options.closeButton = true;
 
+        const rutFunc = (rut) => {
+            return $.formatRut(rut)
+        }
+
+        const cleanRut = (rut) => {
+            let replace1 = rut.split('.').join('')
+            let replace2 = replace1.replace('-', '')
+            return replace2
+        }
+        
         const getCredentials = () => {
             return new Promise(resolve=> {
                 ajax({

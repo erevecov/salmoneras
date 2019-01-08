@@ -76,16 +76,15 @@
         </div>
         <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
             <div class="col-md-12 table-responsive" style="padding-left:20px; padding-right:20px;">
-                <table id="logsTable" class="display nowrap table" width="100%">
+                <table id="bagsTable" class="display nowrap table" width="100%">
                     <thead>
                         <tr>
                             <th>orderDate</th>
                             <th>FECHA <i class="fa fa-angle-double-down"></i></th>
-                            <th>RUT</th>
-                            <th>NOMBRE</th>
-                            <th>ROL</th>
-                            <th>MODULO</th>
-                            <th>DESCRIPCIÓN</th>
+                            <th>PESADOR</th>
+                            <th>CENTRO</th>
+                            <th>CÓDIGO</th>
+                            <th>PESO</th>
                         </tr>
                     </thead>
                 </table>
@@ -148,8 +147,76 @@ $(document).ready(function() {
         $('#enterpriseName').html(credentials.enterprise.toUpperCase())
     })
 
+    loadBagsTable()
     getFullData()
 })
+
+function loadBagsTable() {
+    datatable = $('#bagsTable').DataTable({
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'excel',
+                text: 'EXCEL',
+                //messageTop: ``,
+                title: 'SALMONERAS',
+                exportOptions: {
+                    columns: [ 1, 2, 3, 4, 5 ]
+                }
+            },
+            {
+                extend: 'pdf',
+                text: 'PDF',
+                //messageTop: ``,
+                title: 'SALMONERAS',
+                orientation: 'landscape',
+                pageSize: 'LETTER',
+                exportOptions: {
+                    columns: [ 1, 2, 3, 4, 5 ]
+                }
+            },
+            {
+                extend: 'print',
+                text: 'IMPRIMIR',
+                title: 'SALMONERAS',
+                pageSize: 'LETTER',
+                exportOptions: {
+                    columns: [ 1, 2, 3, 4, 5 ]
+                }
+            }
+        ],
+        ordering: true,
+        order: [[ 0, 'desc' ]],
+        iDisplayLength: 50,
+        lengthChange: false,
+        searchHighlight: true,
+        oLanguage: {
+            sSearch: 'buscar:'
+        },
+        columnDefs: [
+            {
+                targets: [0],
+                visible: false
+            },
+            {
+                targets: [ 1,2,3,4,5 ],
+                orderable: false
+            }
+        ],
+        responsive: false,
+        columns: [
+            {data: 'orderDate'},
+            {data: 'date'},
+            {data: 'weigher'},
+            {data: 'center'},
+            {data: 'code'},
+            {data: 'weight'}
+        ],
+        initComplete: function(settings, json) {
+            //loadBagsToTable()
+        }
+    })
+}
 
 $('#changeDates').on('click', function() {
     $('#modal').modal('show')
@@ -234,12 +301,27 @@ const getFullData = () => {
         if(res.ok) {
           toastr.success(`${res.ok.length} sacos encontrados`)  
           graphCenters(res.ok)
+          loadBagsToTable(res.ok)
         } else if(res.err) {
             toastr.warning(res.err)
         }
     })
 }
 
+const loadBagsToTable = (bags) => {
+    datatable.clear().draw();
+    datatable.rows.add(prettifyBagsData(bags)).draw()
+}
+
+function prettifyBagsData(logs) {
+    return logs.map(el=>{
+        el.orderDate = moment(el._id).format('YYYYMMDDHHmmssSSSSS')
+        el.date = moment(el._id).format('DD/MM/YYYY HH:mm')
+        el.weight = `${number_format(el.weight)} Kg`
+        el.weigher = rutFunc(el.weigher)
+        return el
+    })
+}
 
 const formatData = (centersData) => {
     let centers = {}
