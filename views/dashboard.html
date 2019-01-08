@@ -2,8 +2,34 @@
 
 {{#extend "css"}}
 <style>
+@keyframes socketConnectionTrue {
+    0% {
+        color: rgba(26, 188, 156,1.0);
+    }
+    100% {
+        color: rgba(236, 240, 241,1.0);
+    }
+}
+
+@keyframes socketConnectionFalse {
+    0% {
+        color: rgba(231, 76, 60,1.0);
+    }
+    100% {
+        color: rgba(236, 240, 241,1.0);
+    }
+}
+
+.socketConnectionTrue {
+    animation: socketConnectionTrue 1s infinite;
+}
+
+.socketConnectionFalse {
+    animation: socketConnectionFalse 1s infinite;
+}
 </style>
 {{/extend}}
+<div class="socketConnection" id="socketConnection" style="position:fixed; right:0; margin-right:5px;"></div>
 
 <div class="container-fluid">
     <div class="row">
@@ -22,22 +48,50 @@
         </div>
     </div>
     
-    <div class="row">
-        <div class="col-md-3" id="generalWeightCardContainer"></div>
-        <div class="col-md-9">
-            <div id="generalWeightChart"></div>
+    <ul class="nav nav-pills nav-fill mb-3" id="pills-tab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-home" role="tab" aria-controls="pills-home" aria-selected="true"><i class="far fa-chart-bar"></i> Gráficos</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="false"><i class="fas fa-table"></i> Tabla</a>
+        </li>
+    </ul>
+    <div class="tab-content" id="pills-tabContent">
+        <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
+            <div class="row">
+                <div class="col-md-3" id="generalWeightCardContainer"></div>
+                <div class="col-md-9">
+                    <div id="generalWeightChart"></div>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-md-3" id="generalBagsCardContainer"></div>
+                <div class="col-md-9">
+                    <div id="generalBagsChart"></div>
+                </div>
+            </div>
+                
+            <div class="row" id="foreachCenter"></div>
+        </div>
+        <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+            <div class="col-md-12 table-responsive" style="padding-left:20px; padding-right:20px;">
+                <table id="logsTable" class="display nowrap table" width="100%">
+                    <thead>
+                        <tr>
+                            <th>orderDate</th>
+                            <th>FECHA <i class="fa fa-angle-double-down"></i></th>
+                            <th>RUT</th>
+                            <th>NOMBRE</th>
+                            <th>ROL</th>
+                            <th>MODULO</th>
+                            <th>DESCRIPCIÓN</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
         </div>
     </div>
-    <hr>
-    <div class="row">
-        <div class="col-md-3" id="generalBagsCardContainer"></div>
-        <div class="col-md-9">
-            <div id="generalBagsChart"></div>
-        </div>
-    </div>
-
-    <div class="row" id="foreachCenter"></div>
-
     
 </div>
 
@@ -57,10 +111,35 @@
 </div>
 {{#extend "js"}}
 <script src="/public/js/highchartsTheme.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+
 <script>
+let datatable
 let initDate = moment().format('YYYY-MM-DD')
 let endDate = moment().format('YYYY-MM-DD')
 let fullData = {}
+let socket = io('{{socket}}')
+
+socket.on('connect', function() {
+    $('#socketConnection').addClass('socketConnectionTrue')
+    $('#socketConnection').removeClass('socketConnectionFalse')
+    $('#socketConnection').html('<i class="fas fa-2x fa-circle"></i>')
+})
+
+socket.on('disconnect', function(){
+    $('#socketConnection').addClass('socketConnectionFalse')
+    $('#socketConnection').removeClass('socketConnectionTrue')
+    $('#socketConnection').html('<i class="fas fa-2x fa-plug"></i><span style="font-size: 20px; margin-left:-16px; margin-top:-5px; color:white !important;">X</span>')
+})
+
+socket.on('uploadBags', function(msg){
+    console.log('TESTIIIING')
+    //rangeTotalData(initDate, endDate)
+    toastr.success(`Se ha efectuado una nueva subida de ${msg} sacos`)
+    //console.log(msg)
+    getFullData()
+})
 
 $(document).ready(function() {
     selectNav('nav-dashboard')
@@ -145,7 +224,7 @@ const getFullData = () => {
     }
 
     ajax({
-        url: 'api/rangeTotalData',
+        url: 'api/bagsRangeData',
         type: 'POST',
         data: {
             initDate,
@@ -161,6 +240,7 @@ const getFullData = () => {
     })
 }
 
+
 const formatData = (centersData) => {
     let centers = {}
     let generalData = {
@@ -171,41 +251,41 @@ const formatData = (centersData) => {
     }
 
     _.forEach(centersData, (el)=>{
-        generalData.weight += el.bag.weight
+        generalData.weight += el.weight
         generalData.bags += 1
 
         if (!centers[el.center]) {
             centers[el.center] = {
                 center: el.center,
-                totalWeight: el.bag.weight,
+                totalWeight: el.weight,
                 bagsCount: 1,
                 bags: [{
                     _id: el._id,
                     weigher: el.weigher,
                     provider: el.provider,
-                    weight: el.bag.weight
+                    weight: el.weight
                 }]
             }
         } else {
-            centers[el.center].totalWeight += el.bag.weight
+            centers[el.center].totalWeight += el.weight
             centers[el.center].bagsCount += 1
             centers[el.center].bags.push({
                 _id: el._id,
                 weigher: el.weigher,
                 provider: el.provider,
-                weight: el.bag.weight
+                weight: el.weight
             })
         }
     })
 
     _.forEach(Object.keys(centers), function(el){
         generalData.highchartsWeightSeries.push({
-            name: `${centers[el].center}: ${centers[el].totalWeight} Kg`,
+            name: `${centers[el].center}: ${number_format(centers[el].totalWeight)} Kg`,
             data: [centers[el].totalWeight]
         })
 
         generalData.highchartsBagsSeries.push({
-            name: `${centers[el].center}: ${centers[el].bagsCount}`,
+            name: `${centers[el].center}: ${number_format(centers[el].bagsCount)}`,
             data: [centers[el].bagsCount]
         })
     })
@@ -225,11 +305,13 @@ const graphCenters = (centersData) => {
         <div class="card text-white bg-primary mb-3">
             <div class="card-header"><center>KILOS TOTALES</center></div>
             <div class="card-body">
-                <center><h4 class="card-title"><i class="fas fa-weight"></i> ${fullData.generalWeight} Kg</h4></center>
+                <center><h4 class="card-title"><i class="fas fa-weight"></i> ${number_format(fullData.generalWeight)} Kg</h4></center>
             </div>
         </div>
+        <!--
         <button type="button" class="btn btn-primary">Seleccionar centro</button>
         <button type="button" class="btn btn-primary">Primary</button>
+        -->
     `)
 
     $('#generalBagsCardContainer').html(`
@@ -257,7 +339,7 @@ const graphCenters = (centersData) => {
         },
         yAxis:{
             title:{
-                text: 'cantidad'
+                text: 'kilos'
             },
         },
         series: fullData.highchartsWeightSeries 

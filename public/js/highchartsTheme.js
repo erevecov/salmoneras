@@ -63,7 +63,7 @@ Highcharts.theme = {
         }
     },
     tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        backgroundColor: 'rgba(0, 0, 0, 1)',
         style: {
             color: '#F0F0F0'
         }

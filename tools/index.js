@@ -1,4 +1,6 @@
 import { format, validate } from 'rut.js'
+import uuid from 'uuid/v4'
+import moment from 'moment-timezone'
 
 const cleanRut = (rut) => { // limpia un rut de . y -
     var replace1 = rut.split('.').join('')
@@ -31,7 +33,12 @@ function capitalizeFirst(val) { // capitaliza la primera palabra
     return val.substr(0,1).toUpperCase() + val.substr(1).toLowerCase();
 }
 
+function createToken() {
+    return uuid()
+}
 
+function idGenerator() {
+    return moment.tz('America/Santiago').format('YYYY-MM-DDTHH:mm:ss.SSSSS') + Math.floor((Math.random() * 999999999) + 1)
+}
 
-
-export { ktoK, cleanRut, formatRut, rutFunc, isRut, capitalizeAll, capitalizeFirst }
+export { ktoK, cleanRut, formatRut, rutFunc, isRut, capitalizeAll, capitalizeFirst, createToken, idGenerator }

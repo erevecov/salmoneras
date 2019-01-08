@@ -7,6 +7,7 @@ import Extend from 'handlebars-extend-block'
 import hapiAuthCookie from 'hapi-auth-cookie'
 import Moment from 'moment'
 import dotEnv from 'dotenv'
+import { initSocket } from './socket'
 
 dotEnv.load()
 
@@ -115,7 +116,7 @@ const init = async() => {
 
     await server.start()
     console.log(`Server started listening on ${server.info.uri}`)
-    //initSocket()
+    initSocket()
     process.on('unhandledRejection', (err) => {
         console.log(err)
         process.exit(1)
