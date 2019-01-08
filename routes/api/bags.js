@@ -128,6 +128,52 @@ export default [
             })
         }
     }
+},
+{
+    method: 'POST',
+    path: '/api/searchBag',
+    options: {
+        handler: async (request, h) => {
+            let credentials = request.auth.credentials
+            let bagCode  = request.payload.code
+
+            try {
+                let result = await db.find({
+                    selector: {
+                        _id: {
+                            $gt: 0
+                        },
+                        type: 'bagScan',
+                        code: bagCode,
+                        enterprise: credentials.enterprise                     
+                    },
+                    sort: [
+                       {
+                          _id: 'desc'
+                       }
+                    ]
+                })
+
+                console.log(result)
+
+                
+                if(result.docs[0]){
+                    return { ok: result.docs }
+                } else {
+                    return { err: `No se han encontrado sacos de código ${bagCode}` }
+                }
+                
+            } catch (err) {
+                throw err
+            }
+            
+        },
+        validate: {
+            payload: Joi.object().keys({
+                code: Joi.string().required()
+            })
+        }
+    }
 }]
 
 const bagsDistribution = async (bags, token) => {
@@ -143,7 +189,7 @@ const bagsDistribution = async (bags, token) => {
             provider: el.provider,
             phoneDate: el.phoneDate,
             code: el.code,
-            weight: el.weight,
+            weight: parseInt(el.weight),
             token: token
         })
     })

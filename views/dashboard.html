@@ -40,7 +40,7 @@
                 </a>
 
                 <div class="dropdown-menu" aria-labelledby="dropdownTools">
-                    <a id="" class="dropdown-item" href="#">SIN HERRAMIENTAS</a>
+                    <a id="searchBagButton" class="dropdown-item" href="#"><i class="fas fa-shopping-bag"></i> BUSCAR SACO</a>
                 </div>
             </div>
             <center><h1><span id="enterpriseName"></span> <a data-container="body" data-toggle="popover" data-placement="left" href="#" id="changeDates" role="button" class="btn btn-primary "><i class="far fa-calendar-alt"></i> CAMBIAR FECHAS  <span id="dateSelected" ></span></a></h1></center>
@@ -80,11 +80,11 @@
                     <thead>
                         <tr>
                             <th>orderDate</th>
-                            <th>FECHA <i class="fa fa-angle-double-down"></i></th>
+                            <th>FECHA/HORA <i class="fa fa-angle-double-down"></i></th>
                             <th>PESADOR</th>
                             <th>CENTRO</th>
                             <th>CÓDIGO</th>
-                            <th>PESO</th>
+                            <th>PESO (Kg)</th>
                         </tr>
                     </thead>
                 </table>
@@ -203,7 +203,7 @@ function loadBagsTable() {
                 orderable: false
             }
         ],
-        responsive: false,
+        responsive: true,
         columns: [
             {data: 'orderDate'},
             {data: 'date'},
@@ -217,6 +217,106 @@ function loadBagsTable() {
         }
     })
 }
+
+$('#searchBagButton').on('click', function() {
+    $('#modal').modal('show')
+
+    $('#modal_title').html(`INGRESE CÓDIGO DE SACO`)
+
+    $('#modal_body').html(`
+        <div class="card">
+            <div class="card-body">
+                
+                <div class="row">
+                    <div class="col-md-9">
+                        <input placeholder="EJ: B672" style="font-size: 30px; text-align:center;" class="form-control" id="bagSearchCode" type="text"/>  
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-primary btn-block" id="searchBagBtn"><i class="fas fa-search fa-3x"></i></button> 
+                    </div>
+                </div>
+
+                <div id="bagsFoundContainer"></div>
+            </div>
+        </div>  
+    `)
+
+    new Cleave('#bagSearchCode', {
+        numeral: true,
+        prefix: 'B',
+        delimiter: '',
+        blocks: [6, 4, 4, 4],
+        uppercase: true
+    })
+
+    setTimeout(() => {
+        $('#bagSearchCode').focus()  
+    }, 500);
+    
+    $('#searchBagBtn').on('click', function() {
+        let searchCode = $('#bagSearchCode').val()
+        
+        ajax({
+            url: 'api/searchBag',
+            type: 'POST',
+            data: {
+                code: searchCode
+            }
+        }).then(res=> {
+            console.log(res)
+            if(res.ok) {
+                let countBagsFounded = 0
+                let lengthFounded = ''
+                let tableBodyHTML = ''
+
+                _.forEach(res.ok, function(el) {
+                    countBagsFounded++
+
+                    tableBodyHTML += `
+                        <tr>
+                            <td><center>${moment(el._id).format('DD/MM/YYYY HH:mm')}</center></td>
+                            <td><center>${rutFunc(el.weigher)}</center></td>
+                            <td><center>${el.center.toUpperCase()}</center></td>
+                            <td><center>${number_format(el.weight)}</center></td> 
+                        </tr>
+                    `
+                })
+
+                if(countBagsFounded == 1) {
+                    lengthFounded = `Se ha encontrado <span style="color: rgba(238, 82, 83,1.0)">${countBagsFounded}</span> vez el saco de código <span style="color: rgba(238, 82, 83,1.0)">${searchCode}</span>`
+                } else if(countBagsFounded > 1) {
+                    lengthFounded = `Se ha encontrado <span style="color: rgba(238, 82, 83,1.0)">${countBagsFounded}</span> veces el saco de código <span style="color: rgba(238, 82, 83,1.0)">${searchCode}</span>`
+                }
+
+                $('#bagsFoundContainer').html(`
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">${lengthFounded}</h4>
+                        <hr>
+                        <div class="table-responsive">
+                            <table id="searchBagsTable" class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col"><center>FECHA/HORA</center></th>
+                                        <th scope="col"><center>PESADOR</center></th>
+                                        <th scope="col"><center>CENTRO</center></th>
+                                        <th scope="col"><center>PESO (Kg)</center></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="searchBagsTableBody">
+                                    ${tableBodyHTML}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                `)
+            } else if(res.err) {
+                toastr.warning(res.err)
+            }
+        })
+    })
+})
 
 $('#changeDates').on('click', function() {
     $('#modal').modal('show')
@@ -317,8 +417,9 @@ function prettifyBagsData(logs) {
     return logs.map(el=>{
         el.orderDate = moment(el._id).format('YYYYMMDDHHmmssSSSSS')
         el.date = moment(el._id).format('DD/MM/YYYY HH:mm')
-        el.weight = `${number_format(el.weight)} Kg`
+        el.weight = el.weight
         el.weigher = rutFunc(el.weigher)
+        el.center = el.center.toUpperCase()
         return el
     })
 }
@@ -355,7 +456,8 @@ const formatData = (centersData) => {
                 _id: el._id,
                 weigher: el.weigher,
                 provider: el.provider,
-                weight: el.weight
+                weight: el.weight,
+                code: el.code
             })
         }
     })
