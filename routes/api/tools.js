@@ -29,7 +29,9 @@ export default [
     method: ['GET'],
     path: '/api/benchmark',
     options: {
-        auth: false,
+        auth: {
+            strategies: ['simple']
+        },
         handler: (request, h) => {
             try {
                 return Math.floor((Math.random() * 999999999) + 1)    

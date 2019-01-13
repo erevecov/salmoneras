@@ -9,6 +9,7 @@ import Moment from 'moment'
 import dotEnv from 'dotenv'
 import { initSocket } from './socket'
 import Boom from 'boom'
+const Bcrypt = require('bcrypt')
 
 dotEnv.load()
 
@@ -25,8 +26,42 @@ const server = Hapi.server({
     }
 })
 
+const users = {
+    M20c9d08c057b: {
+        username: '20:c9:d0:8c:05:7b',
+        password: 'BGr0E2IxQwYgJmeP3NvhPrXAeLSaGCj6IRXU5QtjVu5Tm',
+        name: 'John Doe',
+        id: '2133d32a'
+    }
+};
+
+const validate = async (request, username, password, h) => {
+    console.log(request.headers)
+    console.log(username, password)
+    if (username === 'help') {
+        return { response: h.redirect('https://hapijs.com/help') };     // custom response
+    }
+
+    const user = users[username];
+    if (!user) {
+        return { credentials: null, isValid: false };
+    }
+
+    const hash = await Bcrypt.hash(user.password, 10)
+    const isValid = await Bcrypt.compare(password, hash);
+    
+    //const isValid = password === user.password
+    const credentials = { id: user.id, name: user.name };
+
+    return { isValid, credentials };
+};
+
 const init = async() => {
     try {
+        await server.register(require('hapi-auth-basic'));
+
+        server.auth.strategy('simple', 'basic', { validate });
+
         await server.register([
             Vision,
             Inert,
