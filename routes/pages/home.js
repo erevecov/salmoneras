@@ -6,7 +6,6 @@ export default {
     path: '/',
     options: {
         handler: (request, h) => {
-            
             return h.view('dashboard', {socket: process.env.SOCKET_SERVER})
         }
     }

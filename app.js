@@ -8,12 +8,21 @@ import hapiAuthCookie from 'hapi-auth-cookie'
 import Moment from 'moment'
 import dotEnv from 'dotenv'
 import { initSocket } from './socket'
+import Boom from 'boom'
 
 dotEnv.load()
 
 const server = Hapi.server({
     host: '0.0.0.0',
-    port: process.env.SERVER_PORT || 3210
+    port: process.env.SERVER_PORT || 3210,
+    routes: {
+        validate: {
+            failAction: (request, h, err) => {
+                console.error('ValidationError:', err.message);
+                throw Boom.badRequest(err);
+            }
+        }
+    }
 })
 
 const init = async() => {
@@ -118,7 +127,7 @@ const init = async() => {
     console.log(`Server started listening on ${server.info.uri}`)
     initSocket()
     process.on('unhandledRejection', (err) => {
-        console.log(err)
+        throw err
         process.exit(1)
     })
 }
