@@ -34,7 +34,7 @@ export default [
         },
         handler: (request, h) => {
             try {
-                return Math.floor((Math.random() * 999999999) + 1)    
+                return {ok:Math.floor((Math.random() * 999999999) + 1)}    
             } catch (error) {
                 throw error
             }
